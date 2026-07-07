@@ -6,6 +6,15 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "fastapi>=0.139.0",
+    "langchain-openai>=1.0.3",
     "python-dotenv>=1.2.2",
     "uvicorn[standard]>=0.50.2",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
