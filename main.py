@@ -8,8 +8,10 @@ from typing import Any
 from dotenv import load_dotenv
 from fastapi import BackgroundTasks, FastAPI, Header, HTTPException, Query, Request, Response, status
 from fastapi.responses import PlainTextResponse
+from pydantic import BaseModel, Field
 
 from engine import handle_message
+from send_message import send_template_message
 
 
 load_dotenv()
@@ -18,6 +20,24 @@ logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO").upper())
 logger = logging.getLogger("whatsapp-webhook")
 
 app = FastAPI(title="WhatsApp Business Webhook")
+
+
+class SendTemplateMessageRequest(BaseModel):
+    phone_number: str = Field(
+        min_length=5,
+        description="Recipient phone number in international format, usually without '+'.",
+        examples=["905551112233"],
+    )
+    template_name: str = Field(
+        min_length=1,
+        description="Approved WhatsApp message template name.",
+        examples=["hello_world"],
+    )
+    language: str = Field(
+        min_length=2,
+        description="WhatsApp template language code.",
+        examples=["en_US"],
+    )
 
 
 def get_required_env(name: str) -> str:
@@ -74,6 +94,28 @@ def verify_meta_signature(
 @app.get("/health")
 async def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.post("/messages/template")
+async def send_template_message_endpoint(
+    message_request: SendTemplateMessageRequest,
+) -> dict[str, Any]:
+    phone_number_id = get_required_env("WHATSAPP_PHONE_NUMBER_ID")
+
+    try:
+        response = send_template_message(
+            to=message_request.phone_number,
+            language=message_request.language,
+            phone_number_id=phone_number_id,
+            template_name=message_request.template_name,
+        )
+    except RuntimeError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=str(exc),
+        ) from exc
+
+    return {"status": "sent", "response": response}
 
 
 def enqueue_whatsapp_messages(payload: dict[str, Any], background_tasks: BackgroundTasks) -> int:
