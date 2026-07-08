@@ -22,6 +22,10 @@ logger = logging.getLogger("whatsapp-webhook")
 app = FastAPI(title="WhatsApp Business Webhook")
 
 
+TemplateVariableValue = str | int | float | bool
+TemplateVariables = list[TemplateVariableValue] | dict[str, TemplateVariableValue]
+
+
 class SendTemplateMessageRequest(BaseModel):
     phone_number: str = Field(
         min_length=5,
@@ -38,10 +42,13 @@ class SendTemplateMessageRequest(BaseModel):
         description="WhatsApp template language code.",
         examples=["en_US"],
     )
-    template_variables: list[str | int | float | bool] = Field(
+    template_variables: TemplateVariables = Field(
         default_factory=list,
-        description="Ordered values for body placeholders such as {{1}}, {{2}}, and {{3}}.",
-        examples=[["John", "Tuesday", "10:30"]],
+        description=(
+            "Template body variables. Use a list for positional placeholders such as {{1}}, "
+            "or a dictionary for named placeholders such as {{name}}."
+        ),
+        examples=[["John", "Tuesday", "10:30"], {"name": "Numan"}],
     )
 
 

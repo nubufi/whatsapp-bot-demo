@@ -71,10 +71,10 @@ Start a conversation by sending the configured WhatsApp template:
 ```bash
 curl -X POST "http://127.0.0.1:8000/messages/template" \
   -H "Content-Type: application/json" \
-  -d '{"phone_number":"905551112233","template_name":"your_approved_template","language":"en_US","template_variables":["John","Tuesday","10:30"]}'
+  -d '{"phone_number":"905551112233","template_name":"welcome","language":"en","template_variables":{"name":"Numan"}}'
 ```
 
-`template_name` must be an approved message template in your WhatsApp Business account. `template_variables` is optional and maps to body placeholders in order, such as `{{1}}`, `{{2}}`, and `{{3}}`. Meta's `hello_world` template only works with public test numbers.
+`template_name` must be an approved message template in your WhatsApp Business account. `template_variables` is optional. Use an object for named placeholders, such as `{"name":"Numan"}` for `{{name}}`, or a list for positional placeholders, such as `["John","Tuesday","10:30"]` for `{{1}}`, `{{2}}`, and `{{3}}`. Meta's `hello_world` template only works with public test numbers.
 
 When a WhatsApp text message webhook includes `metadata.phone_number_id` and `messages[].from`, the bot generates a concise AI reply through OpenRouter and sends it through the WhatsApp Cloud API. Conversation history is stored in process memory by sender ID, so it resets when the server restarts.
 

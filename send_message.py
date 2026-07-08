@@ -9,6 +9,10 @@ from typing import Any
 logger = logging.getLogger("whatsapp-webhook")
 
 
+TemplateVariableValue = str | int | float | bool
+TemplateVariables = list[TemplateVariableValue] | dict[str, TemplateVariableValue]
+
+
 def get_access_token() -> str | None:
     return os.getenv("WHATSAPP_ACCESS_TOKEN") or os.getenv("ACCESS_TOKEN")
 
@@ -67,7 +71,7 @@ def send_template_message(
     language: str,
     phone_number_id: str,
     template_name: str = "hello_world",
-    template_variables: list[str | int | float | bool] | None = None,
+    template_variables: TemplateVariables | None = None,
 ) -> dict[str, Any]:
     template: dict[str, Any] = {
         "name": template_name,
@@ -75,13 +79,21 @@ def send_template_message(
     }
 
     if template_variables:
+        if isinstance(template_variables, dict):
+            parameters = [
+                {"type": "text", "parameter_name": name, "text": str(value)}
+                for name, value in template_variables.items()
+            ]
+        else:
+            parameters = [
+                {"type": "text", "text": str(value)}
+                for value in template_variables
+            ]
+
         template["components"] = [
             {
                 "type": "body",
-                "parameters": [
-                    {"type": "text", "text": str(value)}
-                    for value in template_variables
-                ],
+                "parameters": parameters,
             }
         ]
 
