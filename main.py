@@ -38,6 +38,11 @@ class SendTemplateMessageRequest(BaseModel):
         description="WhatsApp template language code.",
         examples=["en_US"],
     )
+    template_variables: list[str | int | float | bool] = Field(
+        default_factory=list,
+        description="Ordered values for body placeholders such as {{1}}, {{2}}, and {{3}}.",
+        examples=[["John", "Tuesday", "10:30"]],
+    )
 
 
 def get_required_env(name: str) -> str:
@@ -108,6 +113,7 @@ async def send_template_message_endpoint(
             language=message_request.language,
             phone_number_id=phone_number_id,
             template_name=message_request.template_name,
+            template_variables=message_request.template_variables,
         )
     except RuntimeError as exc:
         raise HTTPException(

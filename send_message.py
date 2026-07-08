@@ -67,15 +67,29 @@ def send_template_message(
     language: str,
     phone_number_id: str,
     template_name: str = "hello_world",
+    template_variables: list[str | int | float | bool] | None = None,
 ) -> dict[str, Any]:
+    template: dict[str, Any] = {
+        "name": template_name,
+        "language": {"code": language},
+    }
+
+    if template_variables:
+        template["components"] = [
+            {
+                "type": "body",
+                "parameters": [
+                    {"type": "text", "text": str(value)}
+                    for value in template_variables
+                ],
+            }
+        ]
+
     payload = {
         "messaging_product": "whatsapp",
         "to": to,
         "type": "template",
-        "template": {
-            "name": template_name,
-            "language": {"code": language},
-        },
+        "template": template,
     }
 
     return post_whatsapp_message(phone_number_id, payload)
